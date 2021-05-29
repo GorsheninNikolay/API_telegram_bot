@@ -17,8 +17,7 @@ logging.basicConfig(
     format='%(asctime)-10s,'
            '%(levelname)-10s,'
            '%(name)-10s,'
-           '%(message)s',
-    )
+           '%(message)s')
 
 
 def parse_homework_status(homework):
