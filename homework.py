@@ -23,9 +23,9 @@ except Exception as token_error:
 
 
 logging.basicConfig(
-    format='%(asctime)-10s,'
-           '%(levelname)-10s,'
-           '%(name)-10s,'
+    format='%(asctime)s,'
+           '%(levelname)s,'
+           '%(name)s,'
            '%(message)s',
            level=logging.DEBUG)
 
@@ -46,7 +46,7 @@ def parse_homework_status(homework: dict) -> str:
     elif status == "approved":
         verdict = 'Ревьюеру всё понравилось, '
         verdict += 'можно приступать к следующему уроку.'
-    return f"У вас проверили работу '{homework_name}'!\n\n{verdict}"
+    return f'У вас проверили работу "{homework_name}"!\n\n{verdict}'
 
 
 def get_homework_statuses(current_timestamp: int) -> dict:
