@@ -10,8 +10,8 @@ load_dotenv()
 
 
 PRAKTIKUM_TOKEN = os.getenv("PRAKTIKUM_TOKEN")
-TELEGRAM_TOKEN = os.getenv('TELEGRAM_TOKEN')
-CHAT_ID = os.getenv('TELEGRAM_CHAT_ID')
+TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
+CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
 
 logging.basicConfig(
     format='%(asctime)-10s,'
@@ -52,6 +52,7 @@ def main():
     logging.debug('Бот успешно запущен.')
     while True:
         try:
+            send_message("Идет проверка...", bot_client=bot)
             # Getting homework with the given time - current_timestamp
             new_homework = get_homework_statuses(current_timestamp)
             if new_homework.get('homeworks'):
