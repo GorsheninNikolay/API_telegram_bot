@@ -8,44 +8,32 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+PRAKTIKUM_TOKEN = os.getenv("PRAKTIKUM_TOKEN")
+TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
+CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
+BOT = telegram.Bot(token=TELEGRAM_TOKEN)
 
-class WrongStatus(Exception):
-    pass
-
-
-try:
-    PRAKTIKUM_TOKEN = os.getenv("PRAKTIKUM_TOKEN")
-    TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
-    CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
-    BOT = telegram.Bot(token=TELEGRAM_TOKEN)
-except Exception as token_error:
-    logging.critical(f"Token has not been found!!!\nError: {token_error}")
-
+statuses = {
+    "rejected": "К сожалению в работе нашлись ошибки.",
+    "approved": "Ревьюеру всё понравилось,"
+                " можно приступать к следующему уроку.",
+    "reviewing": "Проект успешно отправел и ожидает ревью."
+}
 
 logging.basicConfig(
-    format='%(asctime)s,'
-           '%(levelname)s,'
-           '%(name)s,'
-           '%(message)s',
+    format="%(asctime)s"
+           "%(levelname)5s"
+           "%(name)5s"
+           "%(message)5s",
            level=logging.DEBUG)
 
 
 def parse_homework_status(homework: dict) -> str:
-    try:
-        homework_name = homework["homework_name"]
-        status = homework["status"]
-        if status not in ["rejected", "approved", "reviewing"]:
-            raise WrongStatus("Wrong status of homework!")
-    except Exception as error:
-        logging.error(f"Wrong server respone: {error}")
-        send_message(f"Wrong server respone: {error}", bot_client=BOT)
-        time.sleep(600)
-        parse_homework_status(homework)
-    if status == "rejected":
-        verdict = 'К сожалению в работе нашлись ошибки.'
-    elif status == "approved":
-        verdict = 'Ревьюеру всё понравилось, '
-        verdict += 'можно приступать к следующему уроку.'
+    homework_name = homework.get("homework_name")
+    status = homework.get("status")
+    if homework_name or status is None:
+        logging.error("Wrong server response")
+    verdict = statuses[status]
     return f'У вас проверили работу "{homework_name}"!\n\n{verdict}'
 
 
@@ -56,23 +44,21 @@ def get_homework_statuses(current_timestamp: int) -> dict:
             headers={'Authorization': f'OAuth {PRAKTIKUM_TOKEN}'},
             params={'from_date': current_timestamp})
     except requests.RequestException:
-        send_message("Request Error.", bot_client=BOT)
         logging.error("Request Error.")
-        time.sleep(600)
-        get_homework_statuses(current_timestamp)
+        return {}
     return homework_statuses.json()
 
 
 def send_message(message: str,
                  bot_client: telegram.bot.Bot
                  ) -> telegram.bot.Bot.send_message:
-    logging.info('Message has been sent')
+    logging.info('Message has been sent.')
     return bot_client.send_message(CHAT_ID, message)
 
 
 def main() -> None:
     current_timestamp = int(time.time())
-    logging.debug('Бот успешно запущен.')
+    logging.debug('Bot has been successfully launched.')
     while True:
         try:
             new_homework = get_homework_statuses(current_timestamp)
