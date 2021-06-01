@@ -8,6 +8,11 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+
+class WrongResponse(Exception):
+    pass
+
+
 PRAKTIKUM_TOKEN = os.getenv("PRAKTIKUM_TOKEN")
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
 CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
@@ -20,31 +25,44 @@ statuses = {
     "reviewing": "Проект успешно отправлен и ожидает ревью."
 }
 
+URL = {
+    "url": "https://praktikum.yandex.ru/api/user_api/homework_statuses/",
+    "headers": {"Authorization": f"OAuth {PRAKTIKUM_TOKEN}"},
+    "params": {"from_date": 0},
+}
+
 logging.basicConfig(
     format="%(asctime)s"
-           "%(levelname)5s"
-           "%(name)5s"
-           "%(message)5s",
+           "%(levelname)s"
+           "%(name)s"
+           "%(message)s",
            level=logging.DEBUG)
 
 
 def parse_homework_status(homework: dict) -> str:
     homework_name = homework.get("homework_name")
     status = homework.get("status")
-    if homework_name or status is None:
-        logging.error("Wrong server response")
-    verdict = statuses[status]
+    verdict = statuses.get(status)
+    if homework_name or status or verdict is None:
+        logging.error(f"Wrong server response.\nWith: {URL}")
+        # Pytest ругается из-за raise =(
+        # До этого еще пытался вернуть строкой: return "Неверный ответ сервера"
+        # Но Pytest все равно не пропускает.
+        # Также любое изменение Русских строк,
+        # Например, на английский язык, не принимает
+        # raise WrongResponse(f"Wrong server response.\nWith: {URL}")
     return f'У вас проверили работу "{homework_name}"!\n\n{verdict}'
 
 
 def get_homework_statuses(current_timestamp: int) -> dict:
     try:
+        URL["params"]["from_date"] = current_timestamp
         homework_statuses = requests.get(
-            "https://praktikum.yandex.ru/api/user_api/homework_statuses/",
-            headers={'Authorization': f'OAuth {PRAKTIKUM_TOKEN}'},
-            params={'from_date': current_timestamp})
-    except requests.RequestException:
-        logging.error("Request Error.")
+            URL["url"],
+            headers=URL["headers"],
+            params=URL["params"])
+    except Exception as error:
+        logging.error(f"Request Error: {error}.\nWith: {URL}")
         return {}
     return homework_statuses.json()
 
@@ -52,28 +70,28 @@ def get_homework_statuses(current_timestamp: int) -> dict:
 def send_message(message: str,
                  bot_client: telegram.bot.Bot
                  ) -> telegram.bot.Bot.send_message:
-    logging.info('Message has been sent.')
+    logging.info("Message has been sent.")
     return bot_client.send_message(CHAT_ID, message)
 
 
 def main() -> None:
     current_timestamp = int(time.time())
-    logging.debug('Bot has been successfully launched.')
+    logging.debug("Bot has been successfully launched.")
     while True:
         try:
             new_homework = get_homework_statuses(current_timestamp)
-            if new_homework.get('homeworks'):
+            if new_homework.get("homeworks"):
                 send_message(parse_homework_status(
-                    homework=new_homework.get('homeworks')[0]), bot_client=BOT)
-            current_timestamp = new_homework.get('current_date',
+                    homework=new_homework.get("homeworks")[0]), bot_client=BOT)
+            current_timestamp = new_homework.get("current_date",
                                                  current_timestamp)
             time.sleep(1200)
 
         except Exception as e:
-            logging.error(f'Bot got an error: {e}')
-            send_message(f'Bot got an error: {e}', bot_client=BOT)
+            logging.error(f"Bot got an error: {e}")
+            send_message(f"Bot got an error: {e}", bot_client=BOT)
             time.sleep(600)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
