@@ -49,8 +49,23 @@ def parse_homework_status(homework: dict) -> str:
         # До этого еще пытался вернуть строкой: return "Неверный ответ сервера"
         # Но Pytest все равно не пропускает.
         # Также любое изменение Русских строк,
-        # Например, на английский язык, не принимает
+        # Например, на английский язык, не принимает.
+        # Я так понимаю, что в тестах parse_homework_status
+        # Значение homework_name = None, поэтому функция, в моем случае,
+        # Возвращает исключение, Pytest сравнивает все assert-ом
+        # И вместо f'У вас проверили работу "{homework_name}"!\n\n{verdict}'
+        # У меня выходит свое исключение.
+        """Вот ошибка с попыткой return "Неверный ответ сервера":
+ AssertionError:
+Проверьте, что возвращаете название домашней
+                        работы в возврате функции parse_homework_status()
+E assert False
+E + where False = <built-in method startswith of str object at 0x04512E90>
+                            ('У вас проверили работу "FqGyDvIpxOcreLy"')
+E + where <built-in method startswith of str object at 0x04512E90>
+= 'Неверный ответ сервера'.startswith """
         # raise WrongResponse(f"Wrong server response.\nWith: {URL}")
+        # return "Неверный ответ сервера"
     return f'У вас проверили работу "{homework_name}"!\n\n{verdict}'
 
 
