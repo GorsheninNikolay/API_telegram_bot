@@ -42,7 +42,7 @@ def parse_homework_status(homework: dict) -> str:
     homework_name = homework.get("homework_name")
     status = homework.get("status")
     verdict = statuses.get(status)
-    if (homework_name or status or verdict) is None:
+    if homework_name is None or status is None or verdict is None:
         logging.error(f"Wrong server response.\nWith: {URL}")
         raise WrongResponse(f"Wrong server response.\nWith: {URL}")
     return f'У вас проверили работу "{homework_name}"!\n\n{verdict}'
