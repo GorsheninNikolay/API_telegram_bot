@@ -22,22 +22,26 @@ cd ..
 ```
 git clone https://github.com/GorsheninNikolay/API_telegram_bot
 ```
-4. Создание виртуальной среды:
+4. Перейти в каталог:
+```
+cd API_telegram_bot
+```
+5. Создание виртуальной среды:
 ```
 python -m venv venv 
 ```
-5. Активация виртуальной среды:
+6. Активация виртуальной среды:
 ```
 source venv/Scripts/activate
 ```
-6. Установить зависимости из файла requirements.txt:
+7. Установить зависимости из файла requirements.txt:
 ```
 python -m pip install --upgrade pip
 ```
 ```
 pip install -r requirements.txt
 ```
-7. Запуск проекта:
+8. Запуск проекта:
 ```
 python homework.py
 ```
